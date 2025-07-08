@@ -878,10 +878,15 @@ function loadObservations() {
         contenedor.innerHTML = '<p class="no-results">Aún no hay observaciones registradas.</p>';
         return;
       }
+
       contenedor.innerHTML = '';
       data.reverse().forEach(obs => {
         const texto = obs["Escribe tu observación"] || obs["Observación"] || Object.values(obs)[1];
         const nombre = obs["Nombre"] || "Anónimo";
+
+        // FILTRO: si texto está vacío o undefined, no lo muestra
+        if (!texto || texto.trim() === "") return;
+
         const p = document.createElement('p');
         p.innerHTML = `<strong>${nombre}:</strong> ${texto}`;
         contenedor.appendChild(p);
@@ -892,7 +897,6 @@ function loadObservations() {
       document.getElementById('saved-observations').innerHTML = '<p class="no-results">Error al cargar observaciones.</p>';
     });
 }
-
 // Cargar observaciones al iniciar la página
 document.addEventListener('DOMContentLoaded', loadObservations);
   </script>
