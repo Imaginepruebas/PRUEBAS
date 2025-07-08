@@ -317,10 +317,18 @@
     <h2>Observaciones</h2>
   </div>
   <div class="card-body">
+    <!-- Campo para el nombre -->
+    <input id="nombre-observador" type="text" class="form-control mb-2" placeholder="Tu nombre (opcional)" />
+
+    <!-- Campo para la observación -->
     <textarea id="observaciones-input" class="form-control" placeholder="Escribe tus observaciones aquí..." rows="4"></textarea>
+
+    <!-- Botón -->
     <button class="btn btn-primary mt-3" onclick="submitObservation()">
       <i class="fas fa-save me-2"></i>Guardar Observación
     </button>
+
+    <!-- Observaciones guardadas -->
     <div id="saved-observations" class="mt-3">
       <p class="loading">Cargando observaciones...</p>
     </div>
@@ -838,35 +846,32 @@
 
     // Función para enviar observaciones al Google Form
 function submitObservation() {
-  const observacion = document.getElementById('observaciones-input').value;
-  if (observacion.trim() === '' || observacion.length < 5) {
-    alert('Por favor, escribe una observación más detallada (mínimo 5 caracteres).');
+  const observacion = document.getElementById("observaciones-input").value.trim();
+  const nombre = document.getElementById("nombre-observador").value.trim();
+
+  if (!observacion) {
+    alert("Por favor, escribe una observación.");
     return;
   }
 
-  // URL de envío del formulario
-  const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSckJu7_1OG8F0PrX1M6JfcldPQdAWPYlOQOZlzQpd9fdTcsqA/formResponse';
-  // ID del campo del formulario
-  const entryId = 'entry.417936999';
   const formData = new FormData();
-  formData.append(entryId, observacion);
+  formData.append("entry.417936999", observacion);      // Campo Observación
+  formData.append("entry.1842471098", nombre);          // Campo Nombre
 
-  fetch(formUrl, {
-    method: 'POST',
-    body: formData,
-    mode: 'no-cors' // Necesario para evitar problemas de CORS
-  })
-    .then(() => {
-      alert('Observación enviada con éxito.');
-      document.getElementById('observaciones-input').value = '';
-      loadObservations(); // Recargar observaciones (se implementará en el próximo paso)
-    })
-    .catch(error => {
-      console.error('Error al enviar la observación:', error);
-      alert('Error al enviar la observación. Intenta de nuevo.');
-    });
+  fetch("https://docs.google.com/forms/d/e/1FAIpQLSckJu7_1OG8F0PrX1M6JfcldPQdAWPYlOQOZlzQpd9fdTcsqA/formResponse", {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  }).then(() => {
+    document.getElementById("observaciones-input").value = "";
+    document.getElementById("nombre-observador").value = "";
+    alert("Observación guardada con éxito.");
+    loadObservations(); // Opcional: recargar observaciones sin refrescar página
+  }).catch(error => {
+    console.error("Error al enviar la observación:", error);
+    alert("Ocurrió un error al guardar la observación.");
+  });
 }
-
 // Función para cargar observaciones (se implementará en el próximo paso)
 function loadObservations() {
   const url = 'https://opensheet.elk.sh/1tifWNA450_RR83JM2TmI2q4RUyGLzNKAOsXy_sHJRFo/Form Responses 1';
@@ -881,14 +886,15 @@ function loadObservations() {
 
       contenedor.innerHTML = '';
       data.reverse().forEach(obs => {
-        const texto = obs["Escribe tu observación"] || obs["Observación"] || Object.values(obs)[1];
+        const texto = obs["Escribe tu observación"] || "";
         const nombre = obs["Nombre"] || "Anónimo";
+        const timestamp = obs["Marca temporal"] || "";
 
-        // FILTRO: si texto está vacío o undefined, no lo muestra
+        // Si la observación está vacía, no mostrar nada
         if (!texto || texto.trim() === "") return;
 
         const p = document.createElement('p');
-        p.innerHTML = `<strong>${nombre}:</strong> ${texto}`;
+        p.innerHTML = `<strong>${nombre}</strong> (${timestamp}): ${texto}`;
         contenedor.appendChild(p);
       });
     })
